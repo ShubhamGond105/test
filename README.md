@@ -1,70 +1,126 @@
-# Getting Started with Create React App
+# Quiz Form App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React form that saves answers locally when offline and auto-submits when internet reconnects.
 
-## Available Scripts
+## Run
 
-In the project directory, you can run:
+```bash
+npm start
+```
 
-### `npm start`
+Opens at **http://localhost:3000**
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Files
 
-### `npm test`
+```
+src/
+├── App.js
+├── App.css
+├── index.js
+└── components/
+    ├── QuizForm.js
+    └── QuizForm.css
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## QuizForm.js
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Constants
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```js
+const STORAGE_KEY = 'quiz_form_data'; // sessionStorage key
+const AUTO_SUBMIT_DELAY = 120;        // seconds before auto-submit
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Questions
 
-### `npm run eject`
+```js
+const questions = [
+  {
+    id: 1,
+    question: "What is the capital city of India?",
+    placeholder: "Type your answer here...",
+  }
+];
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Add more objects to add more questions.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### State
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+| State | Purpose |
+|---|---|
+| `answers` | Stores `{ id: answerText }` for each question |
+| `isOnline` | Current internet status |
+| `countdown` | Counts down from 120 to 0 after reconnect |
+| `submitted` | True after form is submitted |
+| `submitting` | True while submit is in progress |
+| `currentQuestion` | Active (highlighted) question index |
+| `notification` | Toast message `{ msg, type }` |
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### How It Works
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+**1. Save on every keystroke**
+```js
+useEffect(() => {
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(answers));
+}, [answers]);
+```
 
-### Code Splitting
+**2. Restore on page load**
+```js
+const saved = sessionStorage.getItem(STORAGE_KEY);
+return saved ? JSON.parse(saved) : {};
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+**3. Detect offline/online**
+```js
+window.addEventListener('offline', handleOffline); // shows warning
+window.addEventListener('online', handleOnline);   // starts countdown
+```
 
-### Analyzing the Bundle Size
+**4. Auto-submit after 2 minutes**
+```js
+// Countdown ticks from 120 → 0
+// When countdown hits 0:
+if (countdown === 0 && isOnline && !submitted) {
+  handleSubmit(true);
+}
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+**5. Submit**
+```js
+// Simulated API — replace with real fetch:
+await new Promise(resolve => setTimeout(resolve, 1500));
+sessionStorage.removeItem(STORAGE_KEY); // clear after success
+```
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Offline Flow
 
-### Advanced Configuration
+```
+User types → saved to sessionStorage
+Internet off → submit button disabled
+Internet on  → 2-min countdown starts
+Countdown 0  → form auto-submits
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## Test Offline
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+1. Type an answer
+2. DevTools → Network → **Offline**
+3. Status banner turns yellow
+4. Set back to **Online**
+5. Watch countdown → auto-submits at `00:00`
 
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+> To test faster: change `AUTO_SUBMIT_DELAY` to `10`
