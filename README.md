@@ -124,3 +124,8 @@ Countdown 0  → form auto-submits
 5. Watch countdown → auto-submits at `00:00`
 
 > To test faster: change `AUTO_SUBMIT_DELAY` to `10`
+<img width="1888" height="749" alt="Screenshot 2026-04-09 144954" src="https://github.com/user-attachments/assets/23819afd-dc26-477a-8e2d-c5e800830b46" />
+<img width="1919" height="827" alt="Screenshot 2026-04-09 144639" src="https://github.com/user-attachments/assets/78e8d541-8f63-44e9-a28b-7d857ff7c907" />
+<img width="1919" height="827" alt="Screenshot 2026-04-09 144639" src="https://github.com/user-attachments/assets/adaa1ab2-b7eb-479f-bf18-ecb9513b6cbb" />
+
+
